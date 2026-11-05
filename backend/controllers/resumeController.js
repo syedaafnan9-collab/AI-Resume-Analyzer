@@ -1,84 +1,3 @@
-// export const analyzeResume = async (req, res) => {
-//   try {
-//     const { jobTitle, companyName, description } = req.body;
-//     const resumeFile = req.file;
-
-//     console.log("Job Title:", jobTitle);
-//     console.log("Company:", companyName);
-//     console.log("Description:", description);
-//     console.log("Resume:", resumeFile?.originalname);
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "Resume received successfully",
-//       analysis: {
-//         atsScore: 75,
-//         breakdown: {},
-//         improvementChecklist: [],
-//       },
-//     });
-
-//   } catch (error) {
-//     console.error("Controller error:", error);
-
-//     return res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
-
-// import { PDFParse } from "pdf-parse";
-
-// export const analyzeResume = async (req, res) => {
-//   try {
-//     const { jobTitle, companyName, description } = req.body;
-//     const resumeFile = req.file;
-
-//     if (!resumeFile) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Please upload a resume",
-//       });
-//     }
-
-//     // Extract PDF text
-//     const parser = new PDFParse({
-//       data: resumeFile.buffer,
-//     });
-
-//     const result = await parser.getText();
-
-//     const resumeText = result.text;
-
-//     await parser.destroy();
-
-//     console.log("Job Title:", jobTitle);
-//     console.log("Company:", companyName);
-//     console.log("Extracted Resume Text:", resumeText);
-
-//     if (!resumeText.trim()) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Could not extract text from this PDF",
-//       });
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "Resume text extracted successfully",
-//       resumeText,
-//     });
-
-//   } catch (error) {
-//     console.error("PDF extraction error:", error);
-
-//     return res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
 import Resume from "../models/Resume.js";
 
 import { PDFParse } from "pdf-parse";
@@ -189,78 +108,66 @@ IMPORTANT:
 - Return valid JSON only. Do not include Markdown or code fences.
 `;
 
-    // STEP 4: Generate AI analysis
-    // const response = await ai.models.generateContent({
-    //   model: "gemini-flash-latest",
-    //   contents: prompt,
-    //   config: {
-    //     responseMimeType: "application/json",
-    //     temperature: 0.2,
-    //   },
-    // });
+    let response;
+    const maxAttempts = 3;
 
-let response;
-const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        response = await ai.models.generateContent({
+          model: "gemini-3.5-flash-lite",
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            temperature: 0.2,
+          },
+        });
 
-for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-  try {
-    response = await ai.models.generateContent({
-      model: "gemini-3.5-flash-lite",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.2,
-      },
-    });
+        break;
+      } catch (error) {
+        const errorMessage = error.message || "";
+        const isTemporary =
+          error.status === 503 ||
+          error.code === 503 ||
+          errorMessage.includes("503") ||
+          errorMessage.includes("UNAVAILABLE");
 
-    break;
+        if (!isTemporary || attempt === maxAttempts) {
+          throw error;
+        }
 
-  } catch (error) {
-    const errorMessage = error.message || "";
-    const isTemporary =
-      error.status === 503 ||
-      error.code === 503 ||
-      errorMessage.includes("503") ||
-      errorMessage.includes("UNAVAILABLE");
+        console.log(
+          `Gemini temporarily unavailable. Retrying (${attempt}/${maxAttempts})...`,
+        );
 
-    if (!isTemporary || attempt === maxAttempts) {
-      throw error;
+        await new Promise((resolve) =>
+          setTimeout(resolve, 2000 * Math.pow(2, attempt - 1)),
+        );
+      }
     }
-
-    console.log(
-      `Gemini temporarily unavailable. Retrying (${attempt}/${maxAttempts})...`
-    );
-
-    await new Promise((resolve) =>
-      setTimeout(resolve, 2000 * Math.pow(2, attempt - 1))
-    );
-  }
-}
 
     const analysis = JSON.parse(response.text);
 
     console.log("Gemini analysis generated successfully");
     console.log("ATS Score:", analysis.atsScore);
     // STEP 5: Save resume analysis in MongoDB
-const savedResume = await Resume.create({
-  jobTitle,
-  companyName,
-  description,
-  resumeText,
-  analysis,
-});
+    const savedResume = await Resume.create({
+      jobTitle,
+      companyName,
+      description,
+      resumeText,
+      analysis,
+    });
 
-console.log("Resume analysis saved in MongoDB");
-console.log("Saved Resume ID:", savedResume._id);
+    console.log("Resume analysis saved in MongoDB");
+    console.log("Saved Resume ID:", savedResume._id);
 
     // STEP 5: Send analysis to frontend
     return res.status(200).json({
-  success: true,
-  message: "Resume analyzed and saved successfully",
-  resumeId: savedResume._id,
-  analysis,
-});
-
+      success: true,
+      message: "Resume analyzed and saved successfully",
+      resumeId: savedResume._id,
+      analysis,
+    });
   } catch (error) {
     console.error("Resume analysis error:", error);
 

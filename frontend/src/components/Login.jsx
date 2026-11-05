@@ -2,10 +2,9 @@ import React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 export const Login = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    
     email: "",
     password: "",
   });
@@ -63,26 +62,18 @@ export const Login = () => {
                 alert("Please fill in all fields");
               } else {
                 alert("Login Successful");
-                
+
                 setFormData({
                   email: "",
                   password: "",
                 });
                 navigate("/upload");
-                
               }
             }}
-            
           >
             Login
           </button>
         </div>
-        {/* <div className="login-footer text-center mt-6">
-          Dont have an account?{" "}
-          <a href="/upload" className="text-blue-500 hover:underline">
-            Sign Up
-          </a>
-        </div> */}
       </div>
     </>
   );
