@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-
 import ScoreChart from "./ScoreChart";
 import ResumeBreakdown from "./ResumeBreakDown";
 

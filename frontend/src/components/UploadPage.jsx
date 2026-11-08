@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { analyzeResume } from "./Services/ResumeApi";
@@ -20,45 +19,47 @@ export const UploadPage = () => {
   };
 
   const handleSubmit = async () => {
+    console.log("ANALYZE BUTTON CLICKED");
+    
+    if (
+      !jobTitle.trim() ||
+      !companyName.trim() ||
+      !description.trim() ||
+      !resumeFile
+    ) {
+      alert("Please fill in all fields and upload a resume.");
+      return;
+    }
 
-  if (
-    !jobTitle.trim() ||
-    !companyName.trim() ||
-    !description.trim() ||
-    !resumeFile
-  ) {
-    alert("Please fill in all fields and upload a resume.");
-    return;
-  }
+    const data = new FormData();
+    data.append("jobTitle", jobTitle);
+    data.append("companyName", companyName);
+    data.append("description", description);
+    data.append("resume", resumeFile);
 
-  const data = new FormData();
-  data.append("jobTitle", jobTitle);
-  data.append("companyName", companyName);
-  data.append("description", description);
-  data.append("resume", resumeFile);
+    console.log("FormData file:", data.get("resume"));
 
-  console.log("FormData file:", data.get("resume"));
+    try {
+      const response = await analyzeResume(data);
+      console.log("Submitting resume to backend...");
+      console.log("API RESPONSE:", response);
 
-  try {
-    const response = await analyzeResume(data);
+      console.log("Backend response:", response);
 
-    console.log("Backend response:", response);
-
-    navigate("/analysisresultpage", {
-      state: {
-        jobTitle,
-        companyName,
-        description,
-        resumeFile: resumeFile,
-        analysis: response.analysis,
-      },
-    });
-
-  } catch (error) {
-    console.error("Resume analysis error:", error);
-    alert(error.message);
-  }
-};
+      navigate("/analysisresultpage", {
+        state: {
+          jobTitle,
+          companyName,
+          description,
+          resumeFile: resumeFile,
+          analysis: response.analysis,
+        },
+      });
+    } catch (error) {
+      console.error("Resume analysis error:", error);
+      alert(error.message);
+    }
+  };
 
   return (
     <div className="upload-container w-full max-w-[700px] mx-auto px-4 py-6 sm:px-6 sm:py-8 md:px-8">

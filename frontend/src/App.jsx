@@ -3,7 +3,6 @@ import AnalysisResultPage from "./components/AnalysisResultPage";
 import UploadPage from "./components/UploadPage";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-
 function App() {
   return (
     <BrowserRouter>

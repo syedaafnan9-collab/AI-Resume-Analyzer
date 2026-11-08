@@ -1,5 +1,6 @@
 // const API_BASE_URL = "http://localhost:5000/api/resumes";
-const API_BASE_URL = "https://ai-resume-analyzer-backend-4v1x.onrender.com/api/resumes";
+const API_BASE_URL =
+  "https://ai-resume-analyzer-backend-4v1x.onrender.com/api/resumes";
 export const analyzeResume = async (formData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/analyze`, {
